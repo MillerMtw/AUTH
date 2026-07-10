@@ -19,29 +19,35 @@ module.exports = async (req, res) => {
         if (action === "register") {
             const { data: existingClient } = await supabase.from('whitelist').select('username').eq('client', client).maybeSingle();
             if (existingClient) {
-                return res.status(400).json({ status: "error", message: "You already Have Account" });
+                return res.status(400).json({ status: "error", message: "Already used on this PC" });
             }
-            const { data, error } = await supabase.from('whitelist').insert([{
-                username: nickname,
-                password: password,
-                license: license || "",
-                client: client,
-                log: `Registered at ${timestamp}`
+
+            const { data: existingUser } = await supabase.from('whitelist').select('client').eq('username', nickname).maybeSingle();
+            if (existingUser) {
+                if (existingUser.client === client) {
+                    const { error: updErr } = await supabase.from('whitelist').update({
+                        license: license, password: password,
+                        log: `Renewed at ${timestamp}`
+                    }).eq('username', nickname);
+                    if (updErr) return res.status(400).json({ status: "error", message: "Renew failed" });
+                    return res.status(200).json({ status: "success" });
+                }
+                return res.status(400).json({ status: "error", message: "Username taken" });
+            }
+
+            const { error } = await supabase.from('whitelist').insert([{
+                username: nickname, password: password, license: license || "",
+                client: client, log: `Registered at ${timestamp}`
             }]);
-            if (error) {
-                return res.status(400).json({ status: "error", message: error.message, details: error.details });
-            }
+            if (error) return res.status(400).json({ status: "error", message: "Username taken" });
             return res.status(200).json({ status: "success" });
         }
 
         if (action === "login") {
             const { data: user, error } = await supabase.from('whitelist').select('*')
-                .eq('username', nickname)
-                .eq('password', password)
-                .eq('client', client)
-                .maybeSingle();
+                .eq('username', nickname).eq('password', password).eq('client', client).maybeSingle();
             if (error || !user) {
-                return res.status(401).json({ status: "error", message: error ? error.message : "Invalid credentials" });
+                return res.status(401).json({ status: "error", message: "Wrong credentials" });
             }
             await supabase.from('whitelist').update({ log: `Last login: ${timestamp}` }).eq('id', user.id);
             return res.status(200).json({ status: "success", license: user.license });
@@ -49,6 +55,6 @@ module.exports = async (req, res) => {
 
         res.status(404).json({ message: "Not Found" });
     } catch (e) {
-        res.status(500).json({ status: "error", message: e.message });
+        res.status(500).json({ status: "error", message: "Server error" });
     }
 };
