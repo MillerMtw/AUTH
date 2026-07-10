@@ -1,7 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
 
-const SUPABASE_URL = 'https://fnngvqinfvrbudsecoru.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZubmd2cWluZnZyYnVkc2Vjb3J1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2OTI5MTYsImV4cCI6MjA4NjI2ODkxNn0.PlMtd7_UJCIJEg35ioVdiOYghBN_clVrhjdMaYT5JJ4';
+const SUPABASE_URL = 'https://lidnepyjxzmcfgvurbbr.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxpZG5lcHlqeHptY2ZndnVyYmJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2NTQwMTgsImV4cCI6MjA5OTIzMDAxOH0.pxB33GjvYBUMK8oaknCKvANowKU90-visF1XkXHzWPI';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -29,7 +29,7 @@ module.exports = async (req, res) => {
                 log: `Registered at ${timestamp}`
             }]);
             if (error) {
-                return res.status(400).json({ status: "error", message: error.message, details: error.details, hint: error.hint });
+                return res.status(400).json({ status: "error", message: error.message, details: error.details });
             }
             return res.status(200).json({ status: "success" });
         }
