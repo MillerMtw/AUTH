@@ -47,11 +47,19 @@ module.exports = async (req, res) => {
             const { data: user, error } = await supabase.from('whitelist').select('*')
                 .eq('username', nickname).eq('password', password).eq('client', client).maybeSingle();
             if (error || !user) {
-                // Check if credentials exist but on a different PC
                 const { data: credsOk } = await supabase.from('whitelist').select('client,license')
                     .eq('username', nickname).eq('password', password).maybeSingle();
                 if (credsOk) {
-                    return res.status(401).json({ status: "error", message: "Different PC", savedLicense: credsOk.license });
+                    const jr = await fetch('https://api.jnkie.com/api/v1/whitelist/verifyOpen', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ key: credsOk.license, service: "Apxion", identifier: "1150240" })
+                    });
+                    const jd = await jr.json();
+                    if (!jd.valid || (jd.message !== 'KEY_VALID' && jd.message !== 'KEYLESS')) {
+                        return res.status(401).json({ status: "error", message: "License expired" });
+                    }
+                    return res.status(401).json({ status: "error", message: "Reset HWID", savedLicense: credsOk.license });
                 }
                 return res.status(401).json({ status: "error", message: "Wrong credentials" });
             }
