@@ -47,6 +47,12 @@ module.exports = async (req, res) => {
             const { data: user, error } = await supabase.from('whitelist').select('*')
                 .eq('username', nickname).eq('password', password).eq('client', client).maybeSingle();
             if (error || !user) {
+                // Check if credentials exist but on a different PC
+                const { data: credsOk } = await supabase.from('whitelist').select('client,license')
+                    .eq('username', nickname).eq('password', password).maybeSingle();
+                if (credsOk) {
+                    return res.status(401).json({ status: "error", message: "Different PC", savedLicense: credsOk.license });
+                }
                 return res.status(401).json({ status: "error", message: "Wrong credentials" });
             }
             await supabase.from('whitelist').update({ log: `Last login: ${timestamp}` }).eq('id', user.id);
