@@ -19,7 +19,7 @@ module.exports = async (req, res) => {
         if (action === "register") {
             const { data: existingClient } = await supabase.from('whitelist').select('username').eq('client', client).maybeSingle();
             if (existingClient) {
-                return res.status(400).json({ status: "error", message: "Already used" });
+                return res.status(400).json({ status: "error", message: "Already used on this PC" });
             }
 
             const { data: existingUser } = await supabase.from('whitelist').select('client').eq('username', nickname).maybeSingle();
