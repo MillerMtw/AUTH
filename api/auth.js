@@ -12,7 +12,7 @@ module.exports = async (req, res) => {
 
     if (req.method === 'OPTIONS') return res.status(200).end();
 
-    const { action, nickname, password, license, client } = req.body;
+    const { action, nickname, password, license, client, log } = req.body;
     const timestamp = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
 
     try {
@@ -65,6 +65,12 @@ module.exports = async (req, res) => {
             }
             await supabase.from('whitelist').update({ log: `Last login: ${timestamp}` }).eq('id', user.id);
             return res.status(200).json({ status: "success", license: user.license });
+        }
+
+        if (action === "setLog") {
+            const { error } = await supabase.from('whitelist').update({ log }).eq('username', nickname);
+            if (error) return res.status(400).json({ status: "error", message: "Update failed" });
+            return res.status(200).json({ status: "success" });
         }
 
         res.status(404).json({ message: "Not Found" });
